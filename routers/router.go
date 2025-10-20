@@ -14,7 +14,7 @@ func InitRouter() *gin.Engine {
 	gin.SetMode(setting.Conf.RunMode)
 	apiV1 := r.Group("/trade/v1")
 	{
-		apiV1.GET("/payment", v1.Trade)
+		apiV1.POST("/payment", v1.Trade)
 	}
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
