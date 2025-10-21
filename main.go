@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"planetd/routers"
 
 	"github.com/lanwenhong/lgobase/logger"
+	"github.com/lanwenhong/lgobase/util"
 )
 
 func main() {
@@ -35,8 +37,9 @@ func main() {
 		Colorful:     setting.Conf.Colorful,
 	}
 	logger.Newglog(setting.Conf.LogDir, setting.Conf.LogFile, setting.Conf.LogFileErr, lconf)
-	// ctx, _ := context.WithCancel(context.Background())
-	// ctx = context.WithValue(ctx, "trace_id", util.GenXid())
+	ctx, _ := context.WithCancel(context.Background())
+	ctx = context.WithValue(ctx, "trace_id", util.GenXid())
+	logger.Infof(ctx, "starting planetd")
 	router := routers.InitRouter()
 	s := &http.Server{
 		Addr:           fmt.Sprintf(":%d", setting.Conf.Port),

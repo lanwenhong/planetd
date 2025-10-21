@@ -75,20 +75,6 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		return packet, err
 	}
 	ph := planet_8583.NewProtoHandler()
-	// pData := &planet_8583.ProtoStruct{
-	// 	MsgType:      "0200",
-	// 	ProcessingCd: "002000",
-	// 	Txamt:        strconv.Itoa(rd.Txamt),
-	// 	Syssn:        rd.Clisn,
-	// 	PosEntryMode: "021",
-	// 	NetId:        "226",
-	// 	PosCondCd:    "00",
-	// 	TrackData2:   chnlExtData.Track2,
-	// 	Tid:          chnlExtData.Terminalid,
-	// 	MchntId:      rd.MchInfos.Mchntid,
-	// 	CurrencyCd:   rd.Currency,
-	// 	Pin:          chnlExtData.PinBlock,
-	// }
 	pData := &planet_8583.ProtoStruct{
 		MsgType:      "0200",
 		ProcessingCd: "002000",
@@ -98,11 +84,10 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		NetId:        "226",
 		PosCondCd:    "00",
 		TrackData2:   chnlExtData.Track2,
-		// Tid:          chnlExtData.Terminalid, // TODO ISSUE
-		Tid:        "11411111",
-		MchntId:    "99988802",
-		CurrencyCd: rd.Currency,
-		Pin:        "AA17EAB7BF18034B",
+		Tid:          rd.MchInfos.SubMchntid,
+		MchntId:      rd.MchInfos.Mchntid,
+		CurrencyCd:   rd.Currency,
+		Pin:          strings.ToUpper(chnlExtData.PinBlock),
 	}
 	logger.Debugf(ctx, "pData: %+v", pData)
 	pData.Domain63Tags = make(map[string][]byte)
@@ -272,6 +257,7 @@ type ChnlExtData struct {
 	Track2     string `json:"track2"`
 	Track3     string `json:"track3"`
 	Terminalid string `json:"terminalid"`
+	TradeType  string `json:"trade_type"`
 }
 
 type ChannelInfo struct {

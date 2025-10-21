@@ -17,7 +17,8 @@ func InitRouter() *gin.Engine {
 	gin.SetMode(setting.Conf.RunMode)
 	apiV1 := r.Group("/trade/v1")
 	{
-		apiV1.POST("/payment", v1.Trade)
+		apiV1.POST("/swipe", v1.Trade)
+		apiV1.POST("/refund", v1.Refund)
 	}
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "OK")

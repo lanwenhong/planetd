@@ -9,7 +9,6 @@ import (
 	"os"
 	"planetd/pkg/setting"
 	"strconv"
-	"time"
 
 	"github.com/lanwenhong/lgobase/logger"
 	"github.com/lanwenhong/lgobase/network"
@@ -39,11 +38,10 @@ func SendPacket(ctx context.Context, bcd string) (string, error) {
 		//InsecureSkipVerify: true, // 开启后会跳过证书验证（不安全）
 	}
 
-	cTimeout := 10 * time.Second
-	rTimeout := 10 * time.Second
-	wTimeout := 10 * time.Second
-	// addr := fmt.Sprintf("%s:%s", setting.Conf.PlanetAddr, setting.Conf.PlanetPort)
-	addr := "terminal.uat.planetpayment.com:40860"
+	cTimeout := setting.Conf.PlanetConnTimetout
+	rTimeout := setting.Conf.ReadTimeout
+	wTimeout := setting.Conf.WriteTimeout
+	addr := fmt.Sprintf("%s:%d", setting.Conf.PlanetAddr, setting.Conf.PlanetPort)
 	logger.Debugf(ctx, "addr: %s", addr)
 	c := network.NewTcpSsslConn(addr, cTimeout, rTimeout, wTimeout, tlsConfig)
 	err = c.Open(ctx)
