@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"net/http"
 	"planetd/middleware"
 	"planetd/pkg/setting"
 	v1 "planetd/routers/api/v1"
@@ -19,9 +20,7 @@ func InitRouter() *gin.Engine {
 		apiV1.POST("/payment", v1.Trade)
 	}
 	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+		c.String(http.StatusOK, "OK")
 	})
 	return r
 }

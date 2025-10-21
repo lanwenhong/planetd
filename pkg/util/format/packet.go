@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/lanwenhong/lgobase/logger"
 	"github.com/lanwenhong/planet_8583/planet_8583"
@@ -67,14 +68,6 @@ type RequestData struct {
 	Userid        int          `json:"userid"`
 }
 
-func Json2RequestData(jsonData []byte) (*RequestData, error) {
-	var req RequestData
-	if err := json.Unmarshal(jsonData, &req); err != nil {
-		return nil, fmt.Errorf("json unmarshal error: %v", err)
-	}
-	return &req, nil
-}
-
 func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, error) {
 	packet := ""
 	chnlExtData, err := rd.ToChnlExtData(ctx)
@@ -82,6 +75,20 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		return packet, err
 	}
 	ph := planet_8583.NewProtoHandler()
+	// pData := &planet_8583.ProtoStruct{
+	// 	MsgType:      "0200",
+	// 	ProcessingCd: "002000",
+	// 	Txamt:        strconv.Itoa(rd.Txamt),
+	// 	Syssn:        rd.Clisn,
+	// 	PosEntryMode: "021",
+	// 	NetId:        "226",
+	// 	PosCondCd:    "00",
+	// 	TrackData2:   chnlExtData.Track2,
+	// 	Tid:          chnlExtData.Terminalid,
+	// 	MchntId:      rd.MchInfos.Mchntid,
+	// 	CurrencyCd:   rd.Currency,
+	// 	Pin:          chnlExtData.PinBlock,
+	// }
 	pData := &planet_8583.ProtoStruct{
 		MsgType:      "0200",
 		ProcessingCd: "002000",
@@ -91,11 +98,13 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		NetId:        "226",
 		PosCondCd:    "00",
 		TrackData2:   chnlExtData.Track2,
-		Tid:          chnlExtData.Terminalid,
-		MchntId:      rd.MchInfos.Mchntid,
-		CurrencyCd:   rd.Currency,
-		Pin:          chnlExtData.PinBlock,
+		// Tid:          chnlExtData.Terminalid, // TODO ISSUE
+		Tid:        "11411111",
+		MchntId:    "99988802",
+		CurrencyCd: rd.Currency,
+		Pin:        "AA17EAB7BF18034B",
 	}
+	logger.Debugf(ctx, "pData: %+v", pData)
 	pData.Domain63Tags = make(map[string][]byte)
 
 	tag12 := &planet_8583.Tag12{
@@ -183,6 +192,11 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 	ph.Pack(ctx)
 	fs := planet_8583.FormatByte(ctx, ph.Tbuf)
 	logger.Debugf(ctx, "bcd: %s", fs)
+
+	pd := &PacketData{}
+	finishFd, err := pd.BuildPacket(ctx, ph.Tbuf)
+	packet = strings.ToUpper(string(finishFd))
+	logger.Debugf(ctx, "finish packet: %s", packet)
 	return packet, err
 }
 
@@ -289,11 +303,6 @@ type PacketData struct {
 }
 
 func (pd *PacketData) BuildPacket(ctx context.Context, tbuf []byte) ([]byte, error) {
-	// 检查长度是否超过255
-	if len(tbuf) > 255 {
-		return nil, fmt.Errorf("tbuf length %d exceeds maximum 255", len(tbuf))
-	}
-
 	tpdu := []byte{0x60, 0x00, 0x00, 0x00, 0x10}
 
 	length := len(tpdu) + len(tbuf)
@@ -315,4 +324,17 @@ func (pd *PacketData) BuildPacket(ctx context.Context, tbuf []byte) ([]byte, err
 		fb = append(fb, byte(bcd[i]))
 	}
 	return fb, nil
+}
+
+func (rd *RequestData) Packet2Request(ctx context.Context, packet string) (*planet_8583.ProtoStruct, error) {
+	logger.Infof(ctx, "packet: %s", packet)
+	b, _ := hex.DecodeString(packet)
+	uph := planet_8583.NewProtoHandler()
+	ups := &planet_8583.ProtoStruct{}
+	err := uph.Unpack(ctx, b, ups)
+	if err != nil {
+		logger.Debugf(ctx, "unpack err: %s", err.Error())
+		return ups, err
+	}
+	return ups, nil
 }

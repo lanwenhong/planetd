@@ -21,6 +21,13 @@ type Config struct {
 	LogLevel   string `confpos:"log:loglevel" dtype:"base"`
 	LogStdOut  bool   `confpos:"log:logstdout" dtype:"base"`
 	Colorful   bool   `confpos:"log:colorfull" dtype:"base"`
+
+	PlanetAddr         string        `confpos:"planet:addr" dtype:"base"`
+	PlanetPort         int           `confpos:"planet:port" dtype:"base"`
+	PlanetConnTimetout time.Duration `confpos:"planet:conn_timeout" dtype:"base"`
+	PlanetReadTimeout  time.Duration `confpos:"planet:read_timeout" dtype:"base"`
+	PlanetWriteTimeout time.Duration `confpos:"planet:write_timeout" dtype:"base"`
+	PlanetCertPath     string        `confpos:"planet:cert_path" dtype:"base"`
 }
 
 var Conf *Config = new(Config)
