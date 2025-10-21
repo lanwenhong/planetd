@@ -24,6 +24,6 @@ func DoTransaction(ctx context.Context, rd *format.RequestData) (*planet_8583.Pr
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugf(ctx, "ps: %s", ps)
+	logger.Debugf(ctx, "ps: %+v", ps)
 	return ps, nil
 }

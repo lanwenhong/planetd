@@ -13,17 +13,18 @@ import (
 )
 
 func Trade(c *gin.Context) {
-	data := make(map[string]interface{})
 	requestID := c.Request.Header.Get("X-Request-ID")
 	ctx := context.WithValue(context.Background(), "trace_id", requestID)
 	var requestData format.RequestData
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		logger.Errorf(ctx, "bind json error: %s", err.Error())
 		c.JSON(http.StatusOK, gin.H{
-			"respcd":  e.PARAMERR,
-			"respmsg": e.GetMsg(e.PARAMERR),
-			"resperr": e.GetMsg(e.PARAMERR),
-			"data":    data,
+			"respcd":      e.PARAMERR,
+			"respmsg":     e.GetMsg(e.PARAMERR),
+			"resperr":     e.GetMsg(e.PARAMERR),
+			"chnlsn":      "",
+			"icccondcode": "",
+			"iccdata":     "",
 		})
 		return
 	}
@@ -32,29 +33,36 @@ func Trade(c *gin.Context) {
 	if err != nil {
 		logger.Errorf(ctx, "do transaction error: %s", err.Error())
 		c.JSON(http.StatusOK, gin.H{
-			"respcd":  e.DATAERR,
-			"respmsg": e.GetMsg(e.DATAERR),
-			"resperr": e.GetMsg(e.DATAERR),
-			"data":    data,
+			"respcd":      e.DATAERR,
+			"respmsg":     e.GetMsg(e.DATAERR),
+			"resperr":     e.GetMsg(e.DATAERR),
+			"chnlsn":      "",
+			"icccondcode": "",
+			"iccdata":     "",
 		})
 		return
 	}
+
 	if ups.ResponseCode != "00" {
 		code := "10" + ups.ResponseCode
 		msg := e.GetMsg(code)
 		c.JSON(http.StatusOK, gin.H{
-			"respcd":  code,
-			"respmsg": msg,
-			"resperr": msg,
-			"data":    data,
+			"respcd":      code,
+			"respmsg":     msg,
+			"resperr":     msg,
+			"chnlsn":      ups.RetrievalReferenceNumber,
+			"icccondcode": ups.Domain38,
+			"iccdata":     ups.Domain55,
 		})
 	} else {
 		msg := e.GetMsg(e.SUCCESS)
 		c.JSON(http.StatusOK, gin.H{
-			"respcd":  e.SUCCESS,
-			"respmsg": msg,
-			"resperr": msg,
-			"data":    data,
+			"respcd":      e.SUCCESS,
+			"respmsg":     msg,
+			"resperr":     msg,
+			"chnlsn":      ups.RetrievalReferenceNumber,
+			"icccondcode": ups.Domain38,
+			"iccdata":     ups.Domain55,
 		})
 		return
 	}
