@@ -20,6 +20,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/lanwenhong/lgobase v1.10.9
+	github.com/lanwenhong/planet_8583 v0.0.0-00010101000000-000000000000
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
@@ -40,3 +41,7 @@ require (
 	golang.org/x/tools v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 )
+
+replace github.com/lanwenhong/lgobase v1.10.9 => /Users/dc/Downloads/project_go/lgobase
+
+replace github.com/lanwenhong/planet_8583 => /Users/dc/Downloads/project_go/planet_8583

@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"planetd/middleware"
 	"planetd/pkg/setting"
 	v1 "planetd/routers/api/v1"
 
@@ -11,6 +12,7 @@ func InitRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+	r.Use(middleware.LoogerToFile())
 	gin.SetMode(setting.Conf.RunMode)
 	apiV1 := r.Group("/trade/v1")
 	{
