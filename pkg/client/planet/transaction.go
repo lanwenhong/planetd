@@ -5,12 +5,10 @@ import (
 	"planetd/pkg/util/format"
 
 	"github.com/lanwenhong/lgobase/logger"
-	"github.com/lanwenhong/lgobase/util"
 	"github.com/lanwenhong/planet_8583/planet_8583"
 )
 
 func DoTransaction(ctx context.Context, rd *format.RequestData) (*planet_8583.ProtoStruct, error) {
-	ctx = context.WithValue(ctx, "trace_id", util.GenXid())
 	bcd, err := rd.Request2TransactionPacket(ctx)
 	if err != nil {
 		return nil, err
