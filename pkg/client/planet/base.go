@@ -43,7 +43,7 @@ func SendPacket(ctx context.Context, bcd string) (string, error) {
 	wTimeout := setting.Conf.WriteTimeout
 	addr := fmt.Sprintf("%s:%d", setting.Conf.PlanetAddr, setting.Conf.PlanetPort)
 	logger.Debugf(ctx, "addr: %s", addr)
-	c := network.NewTcpSsslConn(addr, cTimeout, rTimeout, wTimeout, tlsConfig)
+	c := network.NewTcpSslConn(addr, cTimeout, rTimeout, wTimeout, tlsConfig)
 	err = c.Open(ctx)
 	if err != nil {
 		err = fmt.Errorf("open tcp ssl conn error: %s", err.Error())
