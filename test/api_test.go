@@ -57,3 +57,35 @@ func TestTrade(t *testing.T) {
 	}
 	t.Logf("完整响应: %+v", resp)
 }
+
+func TestKeyExchange(t *testing.T) {
+	// 1. 打印完整请求URL
+	fullURL := addr + "/trade/v1/key_exchange"
+	t.Logf("请求URL: %s", fullURL)
+	client := resty.New()
+	content := `{"clisn": "000275", "mch_infos": {"sub_mchntid": "12345678", "key2": "", "mchnt_name": "dasd", "sub_appid": "", "memo": "", "tag": "", "postcode": "", "key": "", "mcc": "", "city": "", "userid": 1130081517, "ext": null, "appid": "", "groupid": 1130000007, "mchntid": "188000344333"}}`
+	// 2. 打印请求体
+	t.Logf("请求体: %s", content)
+
+	// 3. 添加超时设置
+	client.SetTimeout(5 * time.Second)
+
+	// 4. 启用resty调试
+	client.SetDebug(true)
+
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(content).
+		Post(fullURL)
+	// 5. 打印完整响应详情
+	if err != nil {
+		t.Errorf("请求错误: %v", err)
+		if resp != nil {
+			t.Errorf("响应状态: %d", resp.StatusCode())
+			t.Errorf("响应头: %v", resp.Header())
+		}
+		return
+	}
+	t.Logf("完整响应: %+v", resp)
+
+}

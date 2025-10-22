@@ -187,6 +187,48 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 	return packet, err
 }
 
+func (rd *RequestData) Request2KeyExchangePacket(ctx context.Context) (string, error) {
+	packet := ""
+	ph := planet_8583.NewProtoHandler()
+	pData := &planet_8583.ProtoStruct{
+		MsgType:      "0800",
+		ProcessingCd: "920000",
+		Syssn:        rd.Clisn,
+		Tid:          rd.MchInfos.SubMchntid,
+		MchntId:      rd.MchInfos.Mchntid,
+		NetId:        "226",
+	}
+	tagIL := &planet_8583.TagIL{
+		Len:             "0010",
+		Tag:             "IL",
+		InteracSecurity: "0000702940000850", // TODO通道给
+	}
+
+	tagPP := &planet_8583.TagPP{
+		Len:                   "0018",
+		Tag:                   "PP",
+		PlanetPaymentPassword: "24504C414E4554245041594D454E5424", // TODO通道给
+	}
+
+	ph.RegisterD63Tag(ctx, "IL", pData, tagIL)
+	ph.RegisterD63Tag(ctx, "PP", pData, tagPP)
+
+	_, err := ph.PackStru(ctx, pData)
+	if err != nil {
+		logger.Infof(ctx, "PackStru err: %s", err.Error())
+		return packet, err
+	}
+	ph.Pack(ctx)
+
+	fs := planet_8583.FormatByte(ctx, ph.Tbuf)
+	logger.Debugf(ctx, "bcd: %s", fs)
+	pd := &PacketData{}
+	finishFd, err := pd.BuildPacket(ctx, ph.Tbuf)
+	packet = strings.ToUpper(string(finishFd))
+	logger.Debugf(ctx, "finish packet: %s", packet)
+	return packet, err
+}
+
 func DecryptChnlExt(ciphertext, key, iv string) (string, error) {
 	// Base64解码
 	ct, err := base64.StdEncoding.DecodeString(ciphertext)
