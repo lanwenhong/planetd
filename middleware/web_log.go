@@ -49,17 +49,11 @@ func LoogerToFile() gin.HandlerFunc {
 		if rawQuery == "" {
 			rawQuery = "-"
 		}
-		//ctx := context.Background()
-		//q_str := c.Request.URL.Query()
-		//logger.Debugf(ctx, "q_str: %s", q_str)
-		logger.Debugf(ctx, "path: %s", path)
-		logger.Debugf(ctx, "query: %s", rawQuery)
 
 		// 请求IP
 		clientIp := c.ClientIP()
 		handleEnd := time.Now()
 		handleTime := handleEnd.Sub(handleStart)
-		//logger.Infof(ctx, "|%3d|%13v|%15s|%s|%s|",
 		logger.Infof(ctx, "%d|%v|%v|%s|%s|%s|%s|%s",
 			statusCode,
 			latencyTime,
