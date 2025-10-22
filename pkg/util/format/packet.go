@@ -168,12 +168,14 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 
 	_, err = ph.PackStru(ctx, pData)
 	if err != nil {
+		logger.Infof(ctx, "PackStru err: %s", err.Error())
 		return packet, err
 	}
-	// ph.PackMac(ctx, "BBEFB74400000000")
-	// if err != nil {
-	//     return packet, err
-	// }
+	err = ph.PackMac(ctx, "BBEFB74400000000")
+	if err != nil {
+		logger.Debugf(ctx, "PackMac err: %s", err.Error())
+		return packet, err
+	}
 	ph.Pack(ctx)
 	fs := planet_8583.FormatByte(ctx, ph.Tbuf)
 	logger.Debugf(ctx, "bcd: %s", fs)
