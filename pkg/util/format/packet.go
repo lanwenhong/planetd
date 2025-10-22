@@ -87,7 +87,7 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		Tid:          rd.MchInfos.SubMchntid,
 		MchntId:      rd.MchInfos.Mchntid,
 		CurrencyCd:   rd.Currency,
-		Pin:          strings.ToUpper(chnlExtData.PinBlock),
+		// Pin:          strings.ToUpper(chnlExtData.PinBlock),
 	}
 	logger.Debugf(ctx, "pData: %+v", pData)
 	pData.Domain63Tags = make(map[string][]byte)
