@@ -6,6 +6,8 @@ require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/stretchr/testify v1.11.1
+	github.com/lanwenhong/lgobase v1.10.9
+	github.com/lanwenhong/planet_8583 v1.0.0
 )
 
 require (
@@ -85,7 +87,3 @@ require (
 	golang.org/x/tools v0.34.0 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 )
-
-replace github.com/lanwenhong/lgobase v1.10.9 => /Users/dc/Downloads/project_go/lgobase
-
-replace github.com/lanwenhong/planet_8583 => /Users/dc/Downloads/project_go/planet_8583
