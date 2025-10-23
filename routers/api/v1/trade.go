@@ -44,7 +44,7 @@ func Trade(c *gin.Context) {
 		return
 	}
 	ext["icccondcode"] = ups.AuthorizationIDResponse
-	ext["iccdata"] = ups.Domain55
+	ext["iccdata"] = ups.ICCSystemRelatedData
 	if ups.ResponseCode != "00" {
 		code := "10" + ups.ResponseCode
 		msg := e.GetMsg(code)
