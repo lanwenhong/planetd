@@ -30,6 +30,11 @@ func LoogerToFile() gin.HandlerFunc {
 				reqData = bodyBytes
 			}
 		}
+
+		// 创建自定义的ResponseWriter来捕获响应数据
+		blw := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
+		c.Writer = blw
+
 		// 处理请求
 		startTime := time.Now()
 		c.Next()
@@ -37,8 +42,6 @@ func LoogerToFile() gin.HandlerFunc {
 		latencyTime := endTime.Sub(startTime)
 
 		reqMethod := c.Request.Method
-		// 请求路由
-		//reqUri := c.Request.RequestURI
 		// 状态码
 		statusCode := c.Writer.Status()
 
@@ -50,11 +53,23 @@ func LoogerToFile() gin.HandlerFunc {
 			rawQuery = "-"
 		}
 
+		// 获取响应数据
+		var respData []byte
+		if blw.body.Len() > 0 {
+			respBytes := blw.body.Bytes()
+			if len(respBytes) >= 1024 {
+				respData = respBytes[0:1024]
+			} else {
+				respData = respBytes
+			}
+			logger.Debugf(ctx, "response body: %s", string(respData))
+		}
+
 		// 请求IP
 		clientIp := c.ClientIP()
 		handleEnd := time.Now()
 		handleTime := handleEnd.Sub(handleStart)
-		logger.Infof(ctx, "%d|%v|%v|%s|%s|%s|%s|%s",
+		logger.Infof(ctx, "%d|%v|%v|%s|%s|%s|%s|%s|%s",
 			statusCode,
 			latencyTime,
 			handleTime,
@@ -63,6 +78,18 @@ func LoogerToFile() gin.HandlerFunc {
 			path,
 			rawQuery,
 			reqData,
+			respData,
 		)
 	}
+}
+
+// bodyLogWriter 自定义ResponseWriter来捕获响应数据
+type bodyLogWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (w bodyLogWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
 }
