@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"encoding/hex"
 	"net/http"
 	"planetd/pkg/e"
 	"planetd/pkg/util/format"
@@ -44,8 +45,9 @@ func Trade(c *gin.Context) {
 		})
 		return
 	}
+	bcdICCData := hex.EncodeToString(ups.ICCSystemRelatedData)
 	ext["icccondcode"] = ups.AuthorizationIDResponse
-	ext["iccdata"] = ups.ICCSystemRelatedData
+	ext["iccdata"] = bcdICCData
 	ext["channel_resp_code"] = ups.ResponseCode
 	if ups.ResponseCode != "00" {
 		code := "10" + ups.ResponseCode
