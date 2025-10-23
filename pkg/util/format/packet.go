@@ -76,17 +76,19 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 	}
 	ph := planet_8583.NewProtoHandler()
 	pData := &planet_8583.ProtoStruct{
-		MsgType:      "0200",
-		ProcessingCd: "002000",
-		Txamt:        strconv.Itoa(rd.Txamt),
-		Syssn:        rd.Clisn,
-		PosEntryMode: "021",
-		NetId:        "226",
-		PosCondCd:    "00",
-		TrackData2:   chnlExtData.Track2,
-		Tid:          rd.MchInfos.SubMchntid,
-		MchntId:      rd.MchInfos.Mchntid,
-		CurrencyCd:   rd.Currency,
+		MsgType:              "0200",
+		ProcessingCd:         "002000",
+		Txamt:                strconv.Itoa(rd.Txamt),
+		Syssn:                rd.Clisn,
+		NetId:                "226",
+		PosCondCd:            "00",
+		TrackData2:           chnlExtData.Track2,
+		Tid:                  rd.MchInfos.SubMchntid,
+		MchntId:              rd.MchInfos.Mchntid,
+		CurrencyCd:           rd.Currency,
+		Cardsequencenumber:   chnlExtData.Cardseqnum,
+		PosEntryMode:         chnlExtData.EntryMode,
+		ICCSystemRelatedData: chnlExtData.Iccdata,
 		// Pin:          strings.ToUpper(chnlExtData.PinBlock),
 	}
 	logger.Debugf(ctx, "pData: %+v", pData)
@@ -302,6 +304,7 @@ type ChnlExtData struct {
 	Track3     string `json:"track3"`
 	Terminalid string `json:"terminalid"`
 	TradeType  string `json:"trade_type"`
+	EntryMode  string `json:"entry_mode"`
 }
 
 type ChannelInfo struct {
