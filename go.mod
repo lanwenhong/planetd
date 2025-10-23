@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/lanwenhong/lgobase v1.10.11
-	github.com/lanwenhong/planet_8583 v1.0.1
+	github.com/lanwenhong/planet_8583 v1.0.2
 	github.com/stretchr/testify v1.11.1
 )
 
