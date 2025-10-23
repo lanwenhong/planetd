@@ -19,6 +19,7 @@ func Trade(c *gin.Context) {
 	ext := make(map[string]interface{})
 	ext["icccondcode"] = ""
 	ext["iccdata"] = ""
+	ext["channel_resp_code"] = ""
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		logger.Errorf(ctx, "bind json error: %s", err.Error())
 		c.JSON(http.StatusOK, gin.H{
@@ -45,6 +46,7 @@ func Trade(c *gin.Context) {
 	}
 	ext["icccondcode"] = ups.AuthorizationIDResponse
 	ext["iccdata"] = ups.ICCSystemRelatedData
+	ext["channel_resp_code"] = ups.ResponseCode
 	if ups.ResponseCode != "00" {
 		code := "10" + ups.ResponseCode
 		msg := e.GetMsg(code)

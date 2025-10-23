@@ -225,6 +225,7 @@ func (rd *RequestData) Request2KeyExchangePacket(ctx context.Context) (string, e
 		logger.Infof(ctx, "PackStru err: %s", err.Error())
 		return packet, err
 	}
+
 	ph.Pack(ctx)
 
 	fs := planet_8583.FormatByte(ctx, ph.Tbuf)
