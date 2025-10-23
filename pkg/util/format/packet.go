@@ -75,6 +75,11 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		return packet, err
 	}
 	ph := planet_8583.NewProtoHandler()
+	biccdata, err := hex.DecodeString(chnlExtData.Iccdata)
+	if err != nil {
+		logger.Infof(ctx, "DecodeString err: %s", err.Error())
+		return packet, err
+	}
 	pData := &planet_8583.ProtoStruct{
 		MsgType:              "0200",
 		ProcessingCd:         "002000",
@@ -88,7 +93,7 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		CurrencyCd:           rd.Currency,
 		Cardsequencenumber:   chnlExtData.Cardseqnum,
 		PosEntryMode:         chnlExtData.EntryMode,
-		ICCSystemRelatedData: chnlExtData.Iccdata,
+		ICCSystemRelatedData: biccdata,
 		// Pin:          strings.ToUpper(chnlExtData.PinBlock),
 	}
 	logger.Debugf(ctx, "pData: %+v", pData)
