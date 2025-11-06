@@ -204,7 +204,7 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 	ph.RegisterD63Tag(ctx, "IH", pData, tagIH)
 	ph.RegisterD63Tag(ctx, "IL", pData, tagIL)
 
-	for _, k := range pData.Domain64TagKey {
+	for _, k := range pData.Domain63TagKey {
 		logger.Debugf(ctx, "tag: %s", k)
 	}
 
