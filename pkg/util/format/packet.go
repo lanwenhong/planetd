@@ -27,7 +27,7 @@ type RequestData struct {
 	Busicd        string       `json:"busicd"`
 	Businm        string       `json:"businm"`
 	ChannelInfos  ChannelInfo  `json:"channel_infos"`
-	ChnlExt       string       `json:"chnl_ext"`
+	ChnlExt       string       `json:"pos_ext"`
 	Chnlid        int          `json:"chnlid"`
 	Clientip      string       `json:"clientip"`
 	Clisn         string       `json:"clisn"`
@@ -66,10 +66,29 @@ type RequestData struct {
 	Txzone        string       `json:"txzone"`
 	Udid          string       `json:"udid"`
 	Userid        int          `json:"userid"`
+	OrigChnlSn    string       `json:"orig_chnlsn"`
 }
+
+const (
+	TRADE_TYPE_TRADE                     = "trade"
+	TRADE_TYPE_REFUND                    = "refund"
+	TRADE_TYPE_VOID_TRADE                = "void_trade"
+	TRADE_TYPE_VOID_REFUND               = "void_refund"
+	TRADE_TYPE_TRADE_PROSSING_CODE       = "000000"
+	TRADE_TYPE_REFUND_PROSSING_CODE      = "200000"
+	TRADE_TYPE_VOID_TRADE_PROSSING_CODE  = "020000"
+	TRADE_TYPE_VOID_REFUND_PROSSING_CODE = "220000"
+)
 
 func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, error) {
 	packet := ""
+
+	TradeTypeProcessingCode := make(map[string]string)
+	TradeTypeProcessingCode[TRADE_TYPE_TRADE] = TRADE_TYPE_TRADE_PROSSING_CODE
+	TradeTypeProcessingCode[TRADE_TYPE_REFUND] = TRADE_TYPE_REFUND_PROSSING_CODE
+	TradeTypeProcessingCode[TRADE_TYPE_VOID_TRADE] = TRADE_TYPE_VOID_TRADE_PROSSING_CODE
+	TradeTypeProcessingCode[TRADE_TYPE_VOID_REFUND] = TRADE_TYPE_VOID_REFUND_PROSSING_CODE
+
 	chnlExtData, err := rd.ToChnlExtData(ctx)
 	if err != nil {
 		return packet, err
@@ -80,23 +99,39 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		logger.Infof(ctx, "DecodeString err: %s", err.Error())
 		return packet, err
 	}
+	processingCd, flag := TradeTypeProcessingCode[chnlExtData.TradeType]
+	if !flag {
+		logger.Infof(ctx, "TradeTypeProcessingCode err: %s", chnlExtData.TradeType)
+		err = errors.New("trade_type err")
+		return packet, err
+	}
 	pData := &planet_8583.ProtoStruct{
-		MsgType:              "0200",
-		ProcessingCd:         "002000",
-		Txamt:                strconv.Itoa(rd.Txamt),
-		Syssn:                rd.Clisn,
-		NetId:                "226",
-		PosCondCd:            "00",
-		TrackData2:           chnlExtData.Track2,
-		Tid:                  rd.MchInfos.SubMchntid,
-		MchntId:              rd.MchInfos.Mchntid,
-		CurrencyCd:           rd.Currency,
-		Cardsequencenumber:   chnlExtData.Cardseqnum,
-		PosEntryMode:         chnlExtData.EntryMode,
-		ICCSystemRelatedData: biccdata,
+		MsgType: "0200",
+		// CardNo:               chnlExtData.CardNo,
+		ProcessingCd: processingCd,
+		Txamt:        strconv.Itoa(rd.Txamt),
+		Syssn:        rd.Clisn,
+		NetId:        "226",
+		PosCondCd:    "00",
+		// TrackData2:           chnlExtData.Track2,
+		Tid:                rd.MchInfos.SubMchntid,
+		MchntId:            rd.MchInfos.Mchntid,
+		CurrencyCd:         rd.Currency,
+		Cardsequencenumber: chnlExtData.Cardseqnum,
+		PosEntryMode:       chnlExtData.EntryMode,
+		// ICCSystemRelatedData: biccdata,
 		// Pin:          strings.ToUpper(chnlExtData.PinBlock),
 	}
-	logger.Debugf(ctx, "pData: %+v", pData)
+	if chnlExtData.TradeType == TRADE_TYPE_TRADE || chnlExtData.TradeType == TRADE_TYPE_REFUND {
+		pData.CardNo = chnlExtData.CardNo
+		pData.TrackData2 = chnlExtData.Track2
+		pData.ICCSystemRelatedData = biccdata
+	}
+	if chnlExtData.TradeType == TRADE_TYPE_REFUND || chnlExtData.TradeType == TRADE_TYPE_VOID_REFUND || chnlExtData.TradeType == TRADE_TYPE_VOID_TRADE {
+		// TODO 从哪里获取原交易通道返回的流水号
+		pData.RetrievalReferenceNumber = rd.OrigChnlSn
+	}
+	logger.Debugf(ctx, "request pData: %+v", pData)
 	pData.Domain63Tags = make(map[string][]byte)
 
 	tag12 := &planet_8583.Tag12{

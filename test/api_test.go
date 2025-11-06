@@ -1,6 +1,8 @@
 package test
 
 import (
+	"encoding/json"
+	"math/rand"
 	"testing"
 	"time"
 
@@ -9,6 +11,87 @@ import (
 )
 
 const addr = "http://127.0.0.1:9000"
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func GeneratePaymentData(pos_ext string, txamt int, clisn string, orig_chnlsn string) []byte {
+	data := map[string]interface{}{
+		"code":          "",
+		"opuid":         "0",
+		"pay_tag":       "",
+		"code_verifier": "",
+		"appver":        "4.34.16",
+		"channel_infos": map[string]interface{}{
+			"mackey":  "",
+			"partner": "",
+			"zpk":     "2c55ae9dfe263c1bc63199f9638a416c",
+			"zmk":     "4d51c694763a2a4a3e39a65452b574e7",
+		},
+		"paysource":       "",
+		"limit_pay":       "",
+		"txdtm":           time.Now().Format("2006-01-02 15:04:05"),
+		"prepay_amt":      0,
+		"pos_ext":         pos_ext,
+		"syssn":           time.Now().Format("20060102150405") + "000072424",
+		"expired_time":    "",
+		"sysdtm":          time.Now().Format("2006-01-02 15:04:05"),
+		"goods_name":      "dasd-确认码:2424",
+		"access_token":    "",
+		"userid":          1130081517,
+		"alipay_pcode":    "",
+		"udid":            "869071055892963",
+		"appid":           "",
+		"return_url":      "",
+		"store_id":        "1130081517",
+		"businm":          "",
+		"tip_amt":         0,
+		"currency":        "344",
+		"chnlid":          0,
+		"div_template_id": "",
+		"clisn":           clisn, // 使用随机生成的流水号
+		"alipay_params":   "",
+		"auth_code":       "",
+		"out_trade_no":    "",
+		"customer_id":     "",
+		"groupid":         0,
+		"clientip":        "",
+		"openid":          "",
+		"goods_detail":    "",
+		"txcurrcd":        "344",
+		"lnglat":          []interface{}{"0", "0"},
+		"failed_url":      "",
+		"txzone":          "+0800",
+		"lang":            "",
+		"mch_infos": map[string]interface{}{
+			"sub_mchntid": "12345678",
+			"key2":        "",
+			"mchnt_name":  "dasd",
+			"sub_appid":   "",
+			"memo":        "",
+			"tag":         "",
+			"postcode":    "",
+			"key":         "",
+			"mcc":         "",
+			"city":        "",
+			"userid":      1130081517,
+			"ext":         nil,
+			"appid":       "",
+			"groupid":     1130000007,
+			"mchntid":     "188000344333",
+		},
+		"swipe_method": "",
+		"txamt":        txamt,
+		"busicd":       "802808",
+		"phonemodel":   "A8S",
+		"goods_info":   "",
+		"os":           "Android",
+		"orig_chnlsn":  orig_chnlsn,
+	}
+	ret, _ := json.Marshal(data)
+	return ret
+}
 
 func TestPing(t *testing.T) {
 	t.Log("ping")
@@ -29,9 +112,88 @@ func TestPing(t *testing.T) {
 }
 
 func TestTrade(t *testing.T) {
+	// 消费
 	fullURL := addr + "/trade/v1/swipe"
 	client := resty.New()
-	content := `{"code": "", "opuid": "0", "pay_tag": "", "code_verifier": "", "appver":"4.34.16", "channel_infos": {"mackey": "", "partner": "", "zpk": "2c55ae9dfe263c1bc63199f9638a416c", "zmk": "4d51c694763a2a4a3e39a65452b574e7"}, "paysource": "", "limit_pay": "", "txdtm": "2025-10-16 15:21:24", "prepay_amt": 0, "chnl_ext": "qiO1a1+TaVdi9fHGPBHcBYGSgLOVSlI7Q4det8hIl3jRlBbkD0xinrsBz6JnIV/qGU+lLzKEkKKHUsTjkjSxaGMgpyiWAxwfiJz6FtRFVpOcP1UiH3agOqJEggzjY61ulsxJtktaSI6TAk81xsqZZk9EOcekYHFs2vOjMiT2FbVcJ+998SfuxSNFQNufTHCRC7CUG7QxN3afiR8ZHqwm5CFs4Ti5lVLFzKw5+mpzZ9N2BdJh1hKtaCAILiIV8P1aXnbhaTwaiOkRFMwzBNoPOse6dMRxmWcOKNWxZ8eBDSGvBPRdwIC42owF5MbkN4enusvNfrxlp+h4cApGdviyeQd0nxUP8M/ygFex8hYjNI5hUr8DxE9+aD2ZgI90Rk1H3CU6uGkF3JsmXjFdEgtHCyFcMKSINnN7mUwXobsGN7Y0yWvSn+df6YQiYduZ34M7jyFR4khgN6Vo+KsmuQX7L2Ok+UPJBOnXkjqMP+C6GLXe2BQqNUsuT4kooyB0hSmUHXXoHwrFa3/NR0S8WWT9HoWjUbP7mklYJt7HSwJN0h/NpaF0+FsBMOE37pEp9wi2jANOEVzuFGm8pbtfxZ6FSQwoeGUu5OS8ULf2+TGvDl9eCmbpr1df41SxLO/jLVNh", "syssn": "20251021070100020000072424", "expired_time": "", "sysdtm": "2025-10-21 17:10:49", "goods_name": "dasd-\\u786e\\u8ba4\\u7801:2424", "access_token": "", "userid": 1130081517, "alipay_pcode": "", "udid": "869071055892963", "appid": "", "return_url": "", "store_id": "1130081517", "businm": "", "tip_amt": 0, "currency": "344", "chnlid": 0, "div_template_id": "", "clisn": "000276", "alipay_params": "", "auth_code": "", "out_trade_no": "", "customer_id": "", "groupid": 0, "clientip": "", "openid": "", "goods_detail": "", "txcurrcd": "344", "lnglat": ["0", "0"], "failed_url": "", "txzone": "+0800", "lang": "", "mch_infos": {"sub_mchntid": "12345678", "key2": "", "mchnt_name": "dasd", "sub_appid": "", "memo": "", "tag": "", "postcode": "", "key": "", "mcc": "", "city": "", "userid": 1130081517, "ext": null, "appid": "", "groupid": 1130000007, "mchntid": "188000344333"}, "swipe_method": "", "txamt": 100, "busicd": "802808", "phonemodel": "A8S", "goods_info": "", "os": "Android"}`
+	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9F3yzCQ94dqoq4LuWVCwNIqA=="
+	txamt := 100
+	clisn := "000001"
+	content := GeneratePaymentData(pos_ext, txamt, clisn, "")
+	client.SetTimeout(5 * time.Second)
+	client.SetDebug(true)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(content).
+		Post(fullURL)
+	if err != nil {
+		t.Errorf("请求错误: %v", err)
+		if resp != nil {
+			t.Errorf("响应状态: %d", resp.StatusCode())
+			t.Errorf("响应头: %v", resp.Header())
+		}
+		return
+	}
+}
+
+func TestVoidTrade(t *testing.T) {
+	// 消费撤销
+	fullURL := addr + "/trade/v1/swipe"
+	client := resty.New()
+	// content := `{"code": "", "opuid": "0", "pay_tag": "", "code_verifier": "", "orig_chnlsn":"530857597573", "appver":"4.34.16", "channel_infos": {"mackey": "", "partner": "", "zpk": "2c55ae9dfe263c1bc63199f9638a416c", "zmk": "4d51c694763a2a4a3e39a65452b574e7"}, "paysource": "", "limit_pay": "", "txdtm": "2025-10-16 15:21:24", "prepay_amt": 0, "chnl_ext": "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FsXym5EMUs62gPA1vJMSwjQ==", "syssn": "20251021070100020000072424", "expired_time": "", "sysdtm": "2025-10-21 17:10:49", "goods_name": "dasd-\\u786e\\u8ba4\\u7801:2424", "access_token": "", "userid": 1130081517, "alipay_pcode": "", "udid": "869071055892963", "appid": "", "return_url": "", "store_id": "1130081517", "businm": "", "tip_amt": 0, "currency": "344", "chnlid": 0, "div_template_id": "", "clisn": "000112", "alipay_params": "", "auth_code": "", "out_trade_no": "", "customer_id": "", "groupid": 0, "clientip": "", "openid": "", "goods_detail": "", "txcurrcd": "344", "lnglat": ["0", "0"], "failed_url": "", "txzone": "+0800", "lang": "", "mch_infos": {"sub_mchntid": "12345678", "key2": "", "mchnt_name": "dasd", "sub_appid": "", "memo": "", "tag": "", "postcode": "", "key": "", "mcc": "", "city": "", "userid": 1130081517, "ext": null, "appid": "", "groupid": 1130000007, "mchntid": "188000344333"}, "swipe_method": "", "txamt": 200, "busicd": "802808", "phonemodel": "A8S", "goods_info": "", "os": "Android"}`
+	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FsXym5EMUs62gPA1vJMSwjQ=="
+	txamt := 100
+	clisn := "000201"
+	content := GeneratePaymentData(pos_ext, txamt, clisn, "")
+	client.SetTimeout(5 * time.Second)
+	client.SetDebug(true)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(content).
+		Post(fullURL)
+	if err != nil {
+		t.Errorf("请求错误: %v", err)
+		if resp != nil {
+			t.Errorf("响应状态: %d", resp.StatusCode())
+			t.Errorf("响应头: %v", resp.Header())
+		}
+		return
+	}
+}
+
+func TestTradeRefund(t *testing.T) {
+	// 消费退款
+	fullURL := addr + "/trade/v1/refund"
+	client := resty.New()
+	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FfNLe5ZiN6AAJxKSkhRG/BQ=="
+	txamt := 100
+	clisn := "000003"
+	orig_chnlsn := "531057742951"
+	content := GeneratePaymentData(pos_ext, txamt, clisn, orig_chnlsn)
+	client.SetTimeout(5 * time.Second)
+	client.SetDebug(true)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(content).
+		Post(fullURL)
+	if err != nil {
+		t.Errorf("请求错误: %v", err)
+		if resp != nil {
+			t.Errorf("响应状态: %d", resp.StatusCode())
+			t.Errorf("响应头: %v", resp.Header())
+		}
+		return
+	}
+}
+
+func TestVoidRefund(t *testing.T) {
+	// 撤销退款
+	fullURL := addr + "/trade/v1/void_refund"
+	client := resty.New()
+	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9Fy83dzTs5OSryzcfS1rOJ7w=="
+	txamt := 100
+	clisn := "000004"
+	orig_chnlsn := "531057743268"
+	content := GeneratePaymentData(pos_ext, txamt, clisn, orig_chnlsn)
 	client.SetTimeout(5 * time.Second)
 	client.SetDebug(true)
 	resp, err := client.R().
