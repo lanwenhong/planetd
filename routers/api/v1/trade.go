@@ -21,6 +21,7 @@ func Trade(c *gin.Context) {
 	ext["icccondcode"] = ""
 	ext["iccdata"] = ""
 	ext["channel_resp_code"] = ""
+	ext["tag_fa"] = "F"
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		logger.Errorf(ctx, "bind json error: %s", err.Error())
 		c.JSON(http.StatusOK, gin.H{
@@ -28,7 +29,7 @@ func Trade(c *gin.Context) {
 			"respmsg": e.GetMsg(e.PARAMERR),
 			"resperr": e.GetMsg(e.PARAMERR),
 			"chnlsn":  "",
-			"ext":     ext,
+			"pos_ext": ext,
 		})
 		return
 	}
@@ -41,7 +42,7 @@ func Trade(c *gin.Context) {
 			"respmsg": e.GetMsg(e.DATAERR),
 			"resperr": e.GetMsg(e.DATAERR),
 			"chnlsn":  "",
-			"ext":     ext,
+			"pos_ext": ext,
 		})
 		return
 	}
@@ -57,7 +58,7 @@ func Trade(c *gin.Context) {
 			"respmsg": msg,
 			"resperr": msg,
 			"chnlsn":  ups.RetrievalReferenceNumber,
-			"ext":     ext,
+			"pos_ext": ext,
 		})
 	} else {
 		msg := e.GetMsg(e.SUCCESS)
@@ -66,7 +67,7 @@ func Trade(c *gin.Context) {
 			"respmsg": msg,
 			"resperr": msg,
 			"chnlsn":  ups.RetrievalReferenceNumber,
-			"ext":     ext,
+			"pos_ext": ext,
 		})
 		return
 	}
