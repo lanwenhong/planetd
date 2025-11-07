@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -27,7 +26,7 @@ type RequestData struct {
 	Busicd        string       `json:"busicd"`
 	Businm        string       `json:"businm"`
 	ChannelInfos  ChannelInfo  `json:"channel_infos"`
-	ChnlExt       string       `json:"pos_ext"`
+	ChnlExt       ChnlExtData  `json:"pos_ext"`
 	Chnlid        int          `json:"chnlid"`
 	Clientip      string       `json:"clientip"`
 	Clisn         string       `json:"clisn"`
@@ -89,10 +88,7 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 	TradeTypeProcessingCode[TRADE_TYPE_VOID_TRADE] = TRADE_TYPE_VOID_TRADE_PROSSING_CODE
 	TradeTypeProcessingCode[TRADE_TYPE_VOID_REFUND] = TRADE_TYPE_VOID_REFUND_PROSSING_CODE
 
-	chnlExtData, err := rd.ToChnlExtData(ctx)
-	if err != nil {
-		return packet, err
-	}
+	chnlExtData := rd.ChnlExt
 	ph := planet_8583.NewProtoHandler()
 	biccdata, err := hex.DecodeString(chnlExtData.Iccdata)
 	if err != nil {
@@ -193,6 +189,18 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		InteracSecurity: "0000702940000850",
 	}
 
+	tagTC := &planet_8583.TagTC{
+		Len:                       "0003",
+		Tag:                       "TC",
+		TerminalEntryCapabilities: "5",
+	}
+
+	tagFA := &planet_8583.TagFA{
+		Len:                "0003",
+		Tag:                "FA",
+		FinalAuthIndicator: "F",
+	}
+
 	ph.RegisterD63Tag(ctx, "12", pData, tag12)
 	ph.RegisterD63Tag(ctx, "IA", pData, tagIA)
 	ph.RegisterD63Tag(ctx, "IB", pData, tagIB)
@@ -203,6 +211,8 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 	ph.RegisterD63Tag(ctx, "IG", pData, tagIG)
 	ph.RegisterD63Tag(ctx, "IH", pData, tagIH)
 	ph.RegisterD63Tag(ctx, "IL", pData, tagIL)
+	ph.RegisterD63Tag(ctx, "TC", pData, tagTC)
+	ph.RegisterD63Tag(ctx, "FA", pData, tagFA)
 
 	for _, k := range pData.Domain63TagKey {
 		logger.Debugf(ctx, "tag: %s", k)
@@ -318,20 +328,20 @@ func unpadPKCS7(data []byte) ([]byte, error) {
 	return data[:len(data)-padding], nil
 }
 
-func (rd *RequestData) ToChnlExtData(ctx context.Context) (*ChnlExtData, error) {
-	key := "hV5kK6boR+9FosqRPBKB2XosT4u1c608"
-	iv := "qfpay202302_hjsh"
-	chnlExtStr, err := DecryptChnlExt(rd.ChnlExt, key, iv)
-	logger.Debugf(ctx, "chnlExtStr: %s, err: %v", chnlExtStr, err)
-	if err != nil {
-		return nil, err
-	}
-	chnlExtData := &ChnlExtData{}
-	if err := json.Unmarshal([]byte(chnlExtStr), chnlExtData); err != nil {
-		return nil, fmt.Errorf("json unmarshal error: %v", err)
-	}
-	return chnlExtData, nil
-}
+// func (rd *RequestData) ToChnlExtData(ctx context.Context) (*ChnlExtData, error) {
+// 	key := "hV5kK6boR+9FosqRPBKB2XosT4u1c608"
+// 	iv := "qfpay202302_hjsh"
+// 	chnlExtStr, err := DecryptChnlExt(rd.ChnlExt, key, iv)
+// 	logger.Debugf(ctx, "chnlExtStr: %s, err: %v", chnlExtStr, err)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	chnlExtData := &ChnlExtData{}
+// 	if err := json.Unmarshal([]byte(chnlExtStr), chnlExtData); err != nil {
+// 		return nil, fmt.Errorf("json unmarshal error: %v", err)
+// 	}
+// 	return chnlExtData, nil
+// }
 
 type ChnlExtData struct {
 	Cardseqnum string `json:"cardseqnum"`

@@ -2,6 +2,7 @@ package test
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -16,7 +17,11 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func GeneratePaymentData(pos_ext string, txamt int, clisn string, orig_chnlsn string) []byte {
+func generateVerificationCode() string {
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
+}
+
+func GeneratePaymentData(pos_ext map[string]interface{}, txamt int, clisn string, orig_chnlsn string) []byte {
 	data := map[string]interface{}{
 		"code":          "",
 		"opuid":         "0",
@@ -115,9 +120,21 @@ func TestTrade(t *testing.T) {
 	// 消费
 	fullURL := addr + "/trade/v1/swipe"
 	client := resty.New()
-	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9F3yzCQ94dqoq4LuWVCwNIqA=="
+	//pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9F3yzCQ94dqoq4LuWVCwNIqA=="
+	pos_ext := map[string]interface{}{
+		"cardseqnum": "001",
+		"entry_mode": "052",
+		"iccdata":    "9F26089784558B3CD1458B9F2701809F100706010A03A000009F370442B233069F360209FD950580C00818009A032510239C01009F02060000000000015F2A02015682021C009F1A0201569F3303E0F8C89F34031E03009F3501228407A00000000310109F0902008C9F1E0843415357383332309F0306000000000000",
+		"macString":  "0BD57554F4B099B7",
+		"pinBlock":   "",
+		"cardNo":     "4336680006896670",
+		"track1":     "",
+		"track2":     "4336680006896670D22022011193265100000",
+		"track3":     "",
+		"trade_type": "trade",
+	}
 	txamt := 100
-	clisn := "000001"
+	clisn := generateVerificationCode()
 	content := GeneratePaymentData(pos_ext, txamt, clisn, "")
 	client.SetTimeout(5 * time.Second)
 	client.SetDebug(true)
@@ -140,9 +157,21 @@ func TestVoidTrade(t *testing.T) {
 	fullURL := addr + "/trade/v1/swipe"
 	client := resty.New()
 	// content := `{"code": "", "opuid": "0", "pay_tag": "", "code_verifier": "", "orig_chnlsn":"530857597573", "appver":"4.34.16", "channel_infos": {"mackey": "", "partner": "", "zpk": "2c55ae9dfe263c1bc63199f9638a416c", "zmk": "4d51c694763a2a4a3e39a65452b574e7"}, "paysource": "", "limit_pay": "", "txdtm": "2025-10-16 15:21:24", "prepay_amt": 0, "chnl_ext": "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FsXym5EMUs62gPA1vJMSwjQ==", "syssn": "20251021070100020000072424", "expired_time": "", "sysdtm": "2025-10-21 17:10:49", "goods_name": "dasd-\\u786e\\u8ba4\\u7801:2424", "access_token": "", "userid": 1130081517, "alipay_pcode": "", "udid": "869071055892963", "appid": "", "return_url": "", "store_id": "1130081517", "businm": "", "tip_amt": 0, "currency": "344", "chnlid": 0, "div_template_id": "", "clisn": "000112", "alipay_params": "", "auth_code": "", "out_trade_no": "", "customer_id": "", "groupid": 0, "clientip": "", "openid": "", "goods_detail": "", "txcurrcd": "344", "lnglat": ["0", "0"], "failed_url": "", "txzone": "+0800", "lang": "", "mch_infos": {"sub_mchntid": "12345678", "key2": "", "mchnt_name": "dasd", "sub_appid": "", "memo": "", "tag": "", "postcode": "", "key": "", "mcc": "", "city": "", "userid": 1130081517, "ext": null, "appid": "", "groupid": 1130000007, "mchntid": "188000344333"}, "swipe_method": "", "txamt": 200, "busicd": "802808", "phonemodel": "A8S", "goods_info": "", "os": "Android"}`
-	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FsXym5EMUs62gPA1vJMSwjQ=="
+	//pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FsXym5EMUs62gPA1vJMSwjQ=="
+	pos_ext := map[string]interface{}{
+		"cardseqnum": "001",
+		"entry_mode": "052",
+		"iccdata":    "9F26089784558B3CD1458B9F2701809F100706010A03A000009F370442B233069F360209FD950580C00818009A032510239C01009F02060000000000015F2A02015682021C009F1A0201569F3303E0F8C89F34031E03009F3501228407A00000000310109F0902008C9F1E0843415357383332309F0306000000000000",
+		"macString":  "0BD57554F4B099B7",
+		"pinBlock":   "",
+		"cardNo":     "4336680006896670",
+		"track1":     "",
+		"track2":     "4336680006896670D22022011193265100000",
+		"track3":     "",
+		"trade_type": "void_trade",
+	}
 	txamt := 100
-	clisn := "000201"
+	clisn := generateVerificationCode()
 	content := GeneratePaymentData(pos_ext, txamt, clisn, "")
 	client.SetTimeout(5 * time.Second)
 	client.SetDebug(true)
@@ -164,9 +193,21 @@ func TestTradeRefund(t *testing.T) {
 	// 消费退款
 	fullURL := addr + "/trade/v1/refund"
 	client := resty.New()
-	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FfNLe5ZiN6AAJxKSkhRG/BQ=="
+	//pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9FfNLe5ZiN6AAJxKSkhRG/BQ=="
+	pos_ext := map[string]interface{}{
+		"cardseqnum": "001",
+		"entry_mode": "052",
+		"iccdata":    "9F26089784558B3CD1458B9F2701809F100706010A03A000009F370442B233069F360209FD950580C00818009A032510239C01009F02060000000000015F2A02015682021C009F1A0201569F3303E0F8C89F34031E03009F3501228407A00000000310109F0902008C9F1E0843415357383332309F0306000000000000",
+		"macString":  "0BD57554F4B099B7",
+		"pinBlock":   "",
+		"cardNo":     "4336680006896670",
+		"track1":     "",
+		"track2":     "4336680006896670D22022011193265100000",
+		"track3":     "",
+		"trade_type": "refund",
+	}
 	txamt := 100
-	clisn := "000003"
+	clisn := generateVerificationCode()
 	orig_chnlsn := "531057742951"
 	content := GeneratePaymentData(pos_ext, txamt, clisn, orig_chnlsn)
 	client.SetTimeout(5 * time.Second)
@@ -189,9 +230,21 @@ func TestVoidRefund(t *testing.T) {
 	// 撤销退款
 	fullURL := addr + "/trade/v1/void_refund"
 	client := resty.New()
-	pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9Fy83dzTs5OSryzcfS1rOJ7w=="
+	//pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9Fy83dzTs5OSryzcfS1rOJ7w=="
+	pos_ext := map[string]interface{}{
+		"cardseqnum": "001",
+		"entry_mode": "052",
+		"iccdata":    "9F26089784558B3CD1458B9F2701809F100706010A03A000009F370442B233069F360209FD950580C00818009A032510239C01009F02060000000000015F2A02015682021C009F1A0201569F3303E0F8C89F34031E03009F3501228407A00000000310109F0902008C9F1E0843415357383332309F0306000000000000",
+		"macString":  "0BD57554F4B099B7",
+		"pinBlock":   "",
+		"cardNo":     "4336680006896670",
+		"track1":     "",
+		"track2":     "4336680006896670D22022011193265100000",
+		"track3":     "",
+		"trade_type": "void_refund",
+	}
 	txamt := 100
-	clisn := "000004"
+	clisn := generateVerificationCode()
 	orig_chnlsn := "531057743268"
 	content := GeneratePaymentData(pos_ext, txamt, clisn, orig_chnlsn)
 	client.SetTimeout(5 * time.Second)
