@@ -43,7 +43,6 @@ type RequestData struct {
 	Groupid       int          `json:"groupid"`
 	Lang          string       `json:"lang"`
 	LimitPay      string       `json:"limit_pay"`
-	Lnglat        []string     `json:"lnglat"`
 	MchInfos      MerchantInfo `json:"mch_infos"`
 	Openid        string       `json:"openid"`
 	Opuid         string       `json:"opuid"`
