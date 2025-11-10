@@ -19,6 +19,7 @@ func InitRouter() *gin.Engine {
 	{
 		apiV1.POST("/swipe", v1.Trade)
 		apiV1.POST("/refund", v1.Trade)
+		apiV1.POST("/void_trade", v1.Trade)
 		apiV1.POST("/void_refund", v1.Trade)
 		apiV1.POST("/key_exchange", v1.KeyExchange)
 	}
