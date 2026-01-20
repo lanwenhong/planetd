@@ -109,12 +109,12 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		NetId:        "226",
 		PosCondCd:    "00",
 		// TrackData2:           chnlExtData.Track2,
-		Tid:        rd.MchInfos.SubMchntid,
-		MchntId:    rd.MchInfos.Mchntid,
-		CurrencyCd: rd.Currency,
-		// Cardsequencenumber: chnlExtData.Cardseqnum,
-		Cardsequencenumber: "000", // 群里说先改成000
-		PosEntryMode:       chnlExtData.EntryMode,
+		Tid:                rd.MchInfos.SubMchntid,
+		MchntId:            rd.MchInfos.Mchntid,
+		CurrencyCd:         rd.Currency,
+		Cardsequencenumber: chnlExtData.Cardseqnum,
+		// Cardsequencenumber: "000", // 群里说先改成000
+		PosEntryMode: chnlExtData.EntryMode,
 		// ICCSystemRelatedData: biccdata,
 		// Pin:          strings.ToUpper(chnlExtData.PinBlock),
 	}
