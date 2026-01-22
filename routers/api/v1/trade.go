@@ -17,11 +17,14 @@ func Trade(c *gin.Context) {
 	requestID := c.Request.Header.Get("X-Request-ID")
 	ctx := context.WithValue(context.Background(), "trace_id", requestID)
 	var requestData format.RequestData
+	dbExt := make(map[string]interface{})
 	ext := make(map[string]interface{})
 	ext["icccondcode"] = ""
 	ext["iccdata"] = ""
 	ext["channel_resp_code"] = ""
-	ext["tag_fa"] = "F"
+	dbExt["tag_fa"] = "F"
+	dbExt["tag_fc"] = "5"
+	dbExt["processing_cd"] = ""
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		logger.Errorf(ctx, "bind json error: %s", err.Error())
 		c.JSON(http.StatusOK, gin.H{
@@ -30,6 +33,7 @@ func Trade(c *gin.Context) {
 			"resperr": e.GetMsg(e.PARAMERR),
 			"chnlsn":  "",
 			"pos_ext": ext,
+			"ext":     dbExt,
 		})
 		return
 	}
@@ -43,9 +47,11 @@ func Trade(c *gin.Context) {
 			"resperr": e.GetMsg(e.DATAERR),
 			"chnlsn":  "",
 			"pos_ext": ext,
+			"ext":     dbExt,
 		})
 		return
 	}
+	dbExt["processing_cd"] = ups.ProcessingCd
 	bcdICCData := hex.EncodeToString(ups.ICCSystemRelatedData)
 	ext["icccondcode"] = ups.AuthorizationIDResponse
 	ext["iccdata"] = bcdICCData
@@ -59,6 +65,7 @@ func Trade(c *gin.Context) {
 			"resperr": msg,
 			"chnlsn":  ups.RetrievalReferenceNumber,
 			"pos_ext": ext,
+			"ext":     dbExt,
 		})
 	} else {
 		msg := e.GetMsg(e.SUCCESS)
@@ -68,6 +75,7 @@ func Trade(c *gin.Context) {
 			"resperr": msg,
 			"chnlsn":  ups.RetrievalReferenceNumber,
 			"pos_ext": ext,
+			"ext":     dbExt,
 		})
 		return
 	}
