@@ -23,7 +23,7 @@ func Trade(c *gin.Context) {
 	ext["iccdata"] = ""
 	ext["channel_resp_code"] = ""
 	dbExt["tag_fa"] = "F"
-	dbExt["tag_fc"] = "5"
+	dbExt["tag_tc"] = "5"
 	dbExt["processing_cd"] = ""
 	if err := c.ShouldBindJSON(&requestData); err != nil {
 		logger.Errorf(ctx, "bind json error: %s", err.Error())
