@@ -68,10 +68,16 @@ type RequestData struct {
 }
 
 const (
-	TRADE_TYPE_TRADE                     = "trade"
-	TRADE_TYPE_REFUND                    = "refund"
-	TRADE_TYPE_VOID_TRADE                = "void_trade"
-	TRADE_TYPE_VOID_REFUND               = "void_refund"
+	TRADE_TYPE_TRADE       = "trade"
+	TRADE_TYPE_REFUND      = "refund"
+	TRADE_TYPE_VOID_TRADE  = "void_trade"
+	TRADE_TYPE_VOID_REFUND = "void_refund"
+
+	TRADE_TYPE_REVERSAL_TRADE       = "reversal_trade"
+	TRADE_TYPE_REVERSAL_REFUND      = "reversal_refund"
+	TRADE_TYPE_REVERSAL_VOID_TRADE  = "reversal_void_trade"
+	TRADE_TYPE_REVERSAL_VOID_REFUND = "reversal_void_refund"
+
 	TRADE_TYPE_TRADE_PROSSING_CODE       = "000000"
 	TRADE_TYPE_REFUND_PROSSING_CODE      = "200000"
 	TRADE_TYPE_VOID_TRADE_PROSSING_CODE  = "020000"
@@ -344,18 +350,22 @@ func unpadPKCS7(data []byte) ([]byte, error) {
 // }
 
 type ChnlExtData struct {
-	Cardseqnum string `json:"cardseqnum"`
-	Iccdata    string `json:"iccdata"`
-	MacString  string `json:"macString"`
-	PinBlock   string `json:"pinBlock"`
-	TrackData  string `json:"trackData"`
-	CardNo     string `json:"cardNo"`
-	Track1     string `json:"track1"`
-	Track2     string `json:"track2"`
-	Track3     string `json:"track3"`
-	Terminalid string `json:"terminalid"`
-	TradeType  string `json:"trade_type"`
-	EntryMode  string `json:"entry_mode"`
+	Cardseqnum   string `json:"cardseqnum"`
+	Iccdata      string `json:"iccdata"`
+	MacString    string `json:"macString"`
+	PinBlock     string `json:"pinBlock"`
+	TrackData    string `json:"trackData"`
+	CardNo       string `json:"cardNo"`
+	Track1       string `json:"track1"`
+	Track2       string `json:"track2"`
+	Track3       string `json:"track3"`
+	Terminalid   string `json:"terminalid"`
+	TradeType    string `json:"trade_type"`
+	EntryMode    string `json:"entry_mode"`
+	TagFA        string `json:"tag_fa"`
+	TagTC        string `json:"tag_tc"`
+	ProcessingCd string `json:"processing_cd"`
+	OrigSTAN     string `json:"origclisn"`
 }
 
 type ChannelInfo struct {
