@@ -15,7 +15,7 @@ import (
 
 func Trade(c *gin.Context) {
 	requestID := c.Request.Header.Get("X-Request-ID")
-	ctx := context.WithValue(context.Background(), "trace_id", requestID)
+	ctx := context.WithValue(context.Background(), "request_id", requestID)
 	var requestData format.RequestData
 	dbExt := make(map[string]interface{})
 	ext := make(map[string]interface{})

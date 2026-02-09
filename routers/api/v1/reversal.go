@@ -15,7 +15,7 @@ import (
 
 func Reversal(c *gin.Context) {
 	requestID := c.Request.Header.Get("X-Request-ID")
-	ctx := context.WithValue(context.Background(), "trace_id", requestID)
+	ctx := context.WithValue(context.Background(), "request_id", requestID)
 	if _rawData, err := c.GetRawData(); err != nil {
 		logger.Debugf(ctx, "req=%s", string(_rawData))
 	}

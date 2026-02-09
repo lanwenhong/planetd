@@ -15,10 +15,15 @@ import (
 func LoogerToFile() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		handleStart := time.Now()
-		requestID := util.GenerateUniqueStringWithTimestamp("id")
-		c.Request.Header.Set("X-Request-ID", requestID)
-		ctx := context.WithValue(context.Background(), "trace_id", requestID)
-
+		requestID := ""
+		httpRequestID := c.Request.Header.Get("X-Request-ID")
+		if httpRequestID == "" {
+			requestID = util.NewRequestID()
+			c.Request.Header.Set("X-Request-ID", requestID)
+		} else {
+			requestID = httpRequestID
+		}
+		ctx := context.WithValue(context.Background(), "request_id", requestID)
 		var reqData []byte
 		if c.Request.Method == http.MethodPut || c.Request.Method == http.MethodPost {
 			bodyBytes, _ := ioutil.ReadAll(c.Request.Body)

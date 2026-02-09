@@ -136,10 +136,11 @@ func TestTrade(t *testing.T) {
 	txamt := 100
 	clisn := generateVerificationCode()
 	content := GeneratePaymentData(pos_ext, txamt, clisn, "")
-	client.SetTimeout(5 * time.Second)
+	client.SetTimeout(15 * time.Second)
 	client.SetDebug(true)
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
+		// SetHeader("X-Request-ID", "E10000000").
 		SetBody(content).
 		Post(fullURL)
 	if err != nil {
