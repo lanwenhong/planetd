@@ -283,3 +283,40 @@ func TestKeyExchange(t *testing.T) {
 		return
 	}
 }
+
+func Test96Trade(t *testing.T) {
+	// 消费
+	fullURL := addr + "/trade/v1/swipe"
+	client := resty.New()
+	//pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9F3yzCQ94dqoq4LuWVCwNIqA=="
+	pos_ext := map[string]interface{}{
+		"cardseqnum": "001",
+		"entry_mode": "072",
+		"iccdata":    "9F260869B5841B37D49D749F2701809F10201F220100A000000000564953414C3354455354434153450000000000000000009F3704C8BE1FAD9F36020002950500000000009A032602109C01009F02060000000102005F2A020344820200209F1A0203449F3303E0B8C89F3501228407A00000000310109F0902008C9F34031F03029F1E0843415353383334389F03060000000000005F340101",
+		"macString":  "A6B994899F5C0B97",
+		"pinBlock":   "",
+		"cardNo":     "4761731000000027",
+		"track1":     "",
+		"track2":     "4761731000000027D311220119058101",
+		"track3":     "",
+		"trade_type": "trade",
+	}
+	txamt := 10200
+	clisn := generateVerificationCode()
+	content := GeneratePaymentData(pos_ext, txamt, clisn, "")
+	client.SetTimeout(15 * time.Second)
+	client.SetDebug(true)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		// SetHeader("X-Request-ID", "E10000000").
+		SetBody(content).
+		Post(fullURL)
+	if err != nil {
+		t.Errorf("请求错误: %v", err)
+		if resp != nil {
+			t.Errorf("响应状态: %d", resp.StatusCode())
+			t.Errorf("响应头: %v", resp.Header())
+		}
+		return
+	}
+}
