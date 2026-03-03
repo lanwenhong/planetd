@@ -65,33 +65,11 @@ type RequestData struct {
 	Udid          string       `json:"udid"`
 	Userid        int          `json:"userid"`
 	OrigChnlSn    string       `json:"orig_chnlsn"`
+	OrigTxamt     int          `json:"orig_txamt"`
 }
-
-const (
-	TRADE_TYPE_TRADE       = "trade"
-	TRADE_TYPE_REFUND      = "refund"
-	TRADE_TYPE_VOID_TRADE  = "void_trade"
-	TRADE_TYPE_VOID_REFUND = "void_refund"
-
-	TRADE_TYPE_REVERSAL_TRADE       = "reversal_trade"
-	TRADE_TYPE_REVERSAL_REFUND      = "reversal_refund"
-	TRADE_TYPE_REVERSAL_VOID_TRADE  = "reversal_void_trade"
-	TRADE_TYPE_REVERSAL_VOID_REFUND = "reversal_void_refund"
-
-	TRADE_TYPE_TRADE_PROSSING_CODE       = "000000"
-	TRADE_TYPE_REFUND_PROSSING_CODE      = "200000"
-	TRADE_TYPE_VOID_TRADE_PROSSING_CODE  = "020000"
-	TRADE_TYPE_VOID_REFUND_PROSSING_CODE = "220000"
-)
 
 func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, error) {
 	packet := ""
-
-	TradeTypeProcessingCode := make(map[string]string)
-	TradeTypeProcessingCode[TRADE_TYPE_TRADE] = TRADE_TYPE_TRADE_PROSSING_CODE
-	TradeTypeProcessingCode[TRADE_TYPE_REFUND] = TRADE_TYPE_REFUND_PROSSING_CODE
-	TradeTypeProcessingCode[TRADE_TYPE_VOID_TRADE] = TRADE_TYPE_VOID_TRADE_PROSSING_CODE
-	TradeTypeProcessingCode[TRADE_TYPE_VOID_REFUND] = TRADE_TYPE_VOID_REFUND_PROSSING_CODE
 
 	chnlExtData := rd.ChnlExt
 	ph := planet_8583.NewProtoHandler()
@@ -100,12 +78,13 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		logger.Infof(ctx, "DecodeString err: %s", err.Error())
 		return packet, err
 	}
-	processingCd, flag := TradeTypeProcessingCode[chnlExtData.TradeType]
+	processingCd, flag := GetProcessingCode(chnlExtData.TradeType)
 	if !flag {
 		logger.Infof(ctx, "TradeTypeProcessingCode err: %s", chnlExtData.TradeType)
 		err = errors.New("trade_type err")
 		return packet, err
 	}
+
 	pData := &planet_8583.ProtoStruct{
 		MsgType: "0200",
 		// CardNo:               chnlExtData.CardNo,
@@ -121,8 +100,17 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		Cardsequencenumber: chnlExtData.Cardseqnum,
 		// Cardsequencenumber: "000", // 群里说先改成000
 		PosEntryMode: chnlExtData.EntryMode,
+		CardDatetime: chnlExtData.ExpiredDate,
 		// ICCSystemRelatedData: biccdata,
 		// Pin:          strings.ToUpper(chnlExtData.PinBlock),
+	}
+
+	if rd.TipAmt > 0 {
+		var byte54 []byte
+		tipAmt12 := fmt.Sprintf("%012d", rd.TipAmt)
+		byte54 = []byte(tipAmt12)
+		pData.Domain54 = byte54
+		logger.Debugf(ctx, "tipAmt: %d, tipAmt12: %s, byte54: %v", rd.TipAmt, tipAmt12, byte54)
 	}
 	if chnlExtData.TradeType == TRADE_TYPE_TRADE || chnlExtData.TradeType == TRADE_TYPE_REFUND {
 		pData.CardNo = chnlExtData.CardNo
@@ -140,18 +128,6 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		Len:       "0003",
 		Tag:       "12",
 		IndiCator: "X",
-	}
-
-	tagIA := &planet_8583.TagIA{
-		Len:          "0004",
-		Tag:          "IA",
-		HostKeyIndex: "220",
-	}
-
-	tagIB := &planet_8583.TagIB{
-		Len:            "0006",
-		Tag:            "IB",
-		MacCheckDigits: "F9EA",
 	}
 
 	tagIC := &planet_8583.TagIC{
@@ -177,22 +153,131 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 		InteracCardCaptureCapability: "0",
 	}
 
-	tagIG := &planet_8583.TagIG{
-		Len:               "0003",
-		Tag:               "IG",
-		BalanceinResponse: "0",
+	tagTC := &planet_8583.TagTC{
+		Len:                       "0003",
+		Tag:                       "TC",
+		TerminalEntryCapabilities: "5",
 	}
 
-	tagIH := &planet_8583.TagIH{
-		Len:             "0003",
-		Tag:             "IH",
-		InteracSecurity: "0",
+	tagFA := &planet_8583.TagFA{
+		Len:                "0003",
+		Tag:                "FA",
+		FinalAuthIndicator: "F",
 	}
 
-	tagIL := &planet_8583.TagIL{
-		Len:             "0010",
-		Tag:             "IL",
-		InteracSecurity: "0000702940000850",
+	ph.RegisterD63Tag(ctx, "12", pData, tag12)
+	ph.RegisterD63Tag(ctx, "IC", pData, tagIC)
+	ph.RegisterD63Tag(ctx, "ID", pData, tagID)
+	ph.RegisterD63Tag(ctx, "IE", pData, tagIE)
+	ph.RegisterD63Tag(ctx, "IF", pData, tagIF)
+	ph.RegisterD63Tag(ctx, "TC", pData, tagTC)
+	ph.RegisterD63Tag(ctx, "FA", pData, tagFA)
+
+	for _, k := range pData.Domain63TagKey {
+		logger.Debugf(ctx, "tag: %s", k)
+	}
+
+	_, err = ph.PackStru(ctx, pData)
+	if err != nil {
+		logger.Infof(ctx, "PackStru err: %s", err.Error())
+		return packet, err
+	}
+	err = ph.PackMac(ctx, "BBEFB74400000000")
+	if err != nil {
+		logger.Debugf(ctx, "PackMac err: %s", err.Error())
+		return packet, err
+	}
+	ph.Pack(ctx)
+	fs := planet_8583.FormatByte(ctx, ph.Tbuf)
+	logger.Debugf(ctx, "bcd: %s", fs)
+
+	pd := &PacketData{}
+	finishFd, err := pd.BuildPacket(ctx, ph.Tbuf)
+	packet = strings.ToUpper(string(finishFd))
+	logger.Debugf(ctx, "finish packet: %s", packet)
+	return packet, err
+}
+
+func (rd *RequestData) Request2TipTransactionPacket(ctx context.Context) (string, error) {
+	// 场景二小费交易
+	packet := ""
+
+	chnlExtData := rd.ChnlExt
+	ph := planet_8583.NewProtoHandler()
+	// biccdata, err := hex.DecodeString(chnlExtData.Iccdata)
+	_, err := hex.DecodeString(chnlExtData.Iccdata)
+	if err != nil {
+		logger.Infof(ctx, "DecodeString err: %s", err.Error())
+		return packet, err
+	}
+
+	if chnlExtData.TradeType != TRADE_TYPE_TIP {
+		logger.Infof(ctx, "TradeType err: %s", chnlExtData.TradeType)
+		err = errors.New("trade_type err")
+		return packet, err
+	}
+
+	processingCd, flag := GetProcessingCode(chnlExtData.TradeType)
+	if !flag {
+		logger.Infof(ctx, "TradeTypeProcessingCode err: %s", chnlExtData.TradeType)
+		err = errors.New("trade_type err")
+		return packet, err
+	}
+
+	pData := &planet_8583.ProtoStruct{
+		MsgType:                  "0220",
+		ProcessingCd:             processingCd,
+		Txamt:                    strconv.Itoa(rd.OrigTxamt),
+		Syssn:                    rd.Clisn,
+		NetId:                    "226",
+		PosCondCd:                "00",
+		Tid:                      rd.MchInfos.SubMchntid,
+		MchntId:                  rd.MchInfos.Mchntid,
+		CurrencyCd:               rd.Currency,
+		Cardsequencenumber:       chnlExtData.Cardseqnum,
+		PosEntryMode:             chnlExtData.EntryMode,
+		CardNo:                   chnlExtData.CardNo,
+		RetrievalReferenceNumber: rd.OrigChnlSn,
+		CardDatetime:             chnlExtData.ExpiredDate,
+	}
+
+	if rd.TipAmt > 0 {
+		var byte54 []byte
+		tipAmt12 := fmt.Sprintf("%012d", rd.TipAmt)
+		byte54 = []byte(tipAmt12)
+		pData.Domain54 = byte54
+		logger.Debugf(ctx, "tipAmt: %d, tipAmt12: %s, byte54: %v", rd.TipAmt, tipAmt12, byte54)
+	}
+	logger.Debugf(ctx, "request pData: %+v", pData)
+	pData.Domain63Tags = make(map[string][]byte)
+
+	tag12 := &planet_8583.Tag12{
+		Len:       "0003",
+		Tag:       "12",
+		IndiCator: "X",
+	}
+
+	tagIC := &planet_8583.TagIC{
+		Len:                  "0003",
+		Tag:                  "IC",
+		InteracTerminalClass: "03",
+	}
+	tagID := &planet_8583.TagID{
+		Len:                    "0003",
+		Tag:                    "ID",
+		InteracCustomerPresent: "1",
+	}
+
+	tagIE := &planet_8583.TagIE{
+		Len:                "0003",
+		Tag:                "IE",
+		InteracCardPresent: "0",
+	}
+
+	tagIF := &planet_8583.TagIF{
+		Len:                          "0003",
+		Tag:                          "IF",
+		InteracCardCaptureCapability: "0",
 	}
 
 	tagTC := &planet_8583.TagTC{
@@ -208,15 +293,10 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 	}
 
 	ph.RegisterD63Tag(ctx, "12", pData, tag12)
-	ph.RegisterD63Tag(ctx, "IA", pData, tagIA)
-	ph.RegisterD63Tag(ctx, "IB", pData, tagIB)
 	ph.RegisterD63Tag(ctx, "IC", pData, tagIC)
 	ph.RegisterD63Tag(ctx, "ID", pData, tagID)
 	ph.RegisterD63Tag(ctx, "IE", pData, tagIE)
 	ph.RegisterD63Tag(ctx, "IF", pData, tagIF)
-	ph.RegisterD63Tag(ctx, "IG", pData, tagIG)
-	ph.RegisterD63Tag(ctx, "IH", pData, tagIH)
-	ph.RegisterD63Tag(ctx, "IL", pData, tagIL)
 	ph.RegisterD63Tag(ctx, "TC", pData, tagTC)
 	ph.RegisterD63Tag(ctx, "FA", pData, tagFA)
 
@@ -366,6 +446,7 @@ type ChnlExtData struct {
 	TagTC        string `json:"tag_tc"`
 	ProcessingCd string `json:"processing_cd"`
 	OrigSTAN     string `json:"origclisn"`
+	ExpiredDate  string `json:"expired_date"`
 }
 
 type ChannelInfo struct {
