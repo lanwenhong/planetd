@@ -485,3 +485,49 @@ func TestTip2Trade(t *testing.T) {
 		return
 	}
 }
+
+func TestKeyInTrade(t *testing.T) {
+	// 消费
+	fullURL := addr + "/trade/v1/key_in"
+	client := resty.New()
+	//pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9F3yzCQ94dqoq4LuWVCwNIqA=="
+	pos_ext := map[string]interface{}{
+		"cardseqnum":   "001",
+		"entry_mode":   "012",
+		"iccdata":      "9F26082BE1761CCDE654E89F2701809F101706011203A000000F00564953414C3354455354434153459F3704FC5E4D3A9F36020001950500000000009A032601229C01009F02060000000110005F2A020344820200009F1A0203449F3303E028C89F3501228407A00000000310109F0902008C9F34031F03029F1E0843415353383334389F03060000000000005F340101",
+		"macString":    "5D3DE4BCA70F5050",
+		"pinBlock":     "",
+		"cardNo":       "4761731000000100",
+		"track1":       "",
+		"track2":       "4761731000000100D311220113202839",
+		"track3":       "",
+		"expired_date": "2612",
+		"trade_type":   "key_in",
+	}
+	txamt := 20000
+	tipAmt := 0
+	clisn := generateVerificationCode()
+	trd := TestRequestData{
+		txamt:       txamt,
+		clisn:       clisn,
+		orig_chnlsn: "",
+		tip_amt:     tipAmt,
+		orig_txamt:  0,
+	}
+	content := GeneratePaymentData(pos_ext, trd)
+	client.SetTimeout(15 * time.Second)
+	client.SetDebug(true)
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		// SetHeader("X-Request-ID", "E10000000").
+		SetBody(content).
+		Post(fullURL)
+	if err != nil {
+		t.Errorf("请求错误: %v", err)
+		if resp != nil {
+			t.Errorf("响应状态: %d", resp.StatusCode())
+			t.Errorf("响应头: %v", resp.Header())
+		}
+		return
+	}
+}

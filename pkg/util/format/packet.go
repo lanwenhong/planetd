@@ -325,6 +325,126 @@ func (rd *RequestData) Request2TipTransactionPacket(ctx context.Context) (string
 	return packet, err
 }
 
+func (rd *RequestData) Request2KeyInTransactionPacket(ctx context.Context) (string, error) {
+	// KeyIn交易
+	logger.Infof(ctx, "%s", "Request2KeyInTransactionPacket")
+	packet := ""
+
+	chnlExtData := rd.ChnlExt
+	ph := planet_8583.NewProtoHandler()
+	// biccdata, err := hex.DecodeString(chnlExtData.Iccdata)
+	_, err := hex.DecodeString(chnlExtData.Iccdata)
+	if err != nil {
+		logger.Infof(ctx, "DecodeString err: %s", err.Error())
+		return packet, err
+	}
+
+	if chnlExtData.TradeType != TRADE_TYPE_KEY_IN {
+		logger.Infof(ctx, "TradeType err: %s", chnlExtData.TradeType)
+		err = errors.New("trade_type err")
+		return packet, err
+	}
+
+	processingCd, flag := GetProcessingCode(chnlExtData.TradeType)
+	if !flag {
+		logger.Infof(ctx, "TradeTypeProcessingCode err: %s", chnlExtData.TradeType)
+		err = errors.New("trade_type err")
+		return packet, err
+	}
+
+	pData := &planet_8583.ProtoStruct{
+		MsgType:            "0200",
+		ProcessingCd:       processingCd,
+		Txamt:              strconv.Itoa(rd.Txamt),
+		Syssn:              rd.Clisn,
+		NetId:              "226",
+		PosCondCd:          "00",
+		Tid:                rd.MchInfos.SubMchntid,
+		MchntId:            rd.MchInfos.Mchntid,
+		CurrencyCd:         rd.Currency,
+		Cardsequencenumber: chnlExtData.Cardseqnum,
+		PosEntryMode:       chnlExtData.EntryMode,
+		CardNo:             chnlExtData.CardNo,
+		CardDatetime:       chnlExtData.ExpiredDate,
+	}
+
+	logger.Debugf(ctx, "request pData: %+v", pData)
+	pData.Domain63Tags = make(map[string][]byte)
+
+	tag12 := &planet_8583.Tag12{
+		Len:       "0003",
+		Tag:       "12",
+		IndiCator: "X",
+	}
+
+	tagIC := &planet_8583.TagIC{
+		Len:                  "0003",
+		Tag:                  "IC",
+		InteracTerminalClass: "03",
+	}
+	tagID := &planet_8583.TagID{
+		Len:                    "0003",
+		Tag:                    "ID",
+		InteracCustomerPresent: "1",
+	}
+
+	tagIE := &planet_8583.TagIE{
+		Len:                "0003",
+		Tag:                "IE",
+		InteracCardPresent: "0",
+	}
+
+	tagIF := &planet_8583.TagIF{
+		Len:                          "0003",
+		Tag:                          "IF",
+		InteracCardCaptureCapability: "0",
+	}
+
+	tagTC := &planet_8583.TagTC{
+		Len:                       "0003",
+		Tag:                       "TC",
+		TerminalEntryCapabilities: "5",
+	}
+
+	tagFA := &planet_8583.TagFA{
+		Len:                "0003",
+		Tag:                "FA",
+		FinalAuthIndicator: "F",
+	}
+
+	ph.RegisterD63Tag(ctx, "12", pData, tag12)
+	ph.RegisterD63Tag(ctx, "IC", pData, tagIC)
+	ph.RegisterD63Tag(ctx, "ID", pData, tagID)
+	ph.RegisterD63Tag(ctx, "IE", pData, tagIE)
+	ph.RegisterD63Tag(ctx, "IF", pData, tagIF)
+	ph.RegisterD63Tag(ctx, "TC", pData, tagTC)
+	ph.RegisterD63Tag(ctx, "FA", pData, tagFA)
+
+	for _, k := range pData.Domain63TagKey {
+		logger.Debugf(ctx, "tag: %s", k)
+	}
+
+	_, err = ph.PackStru(ctx, pData)
+	if err != nil {
+		logger.Infof(ctx, "PackStru err: %s", err.Error())
+		return packet, err
+	}
+	err = ph.PackMac(ctx, "BBEFB74400000000")
+	if err != nil {
+		logger.Debugf(ctx, "PackMac err: %s", err.Error())
+		return packet, err
+	}
+	ph.Pack(ctx)
+	fs := planet_8583.FormatByte(ctx, ph.Tbuf)
+	logger.Debugf(ctx, "bcd: %s", fs)
+
+	pd := &PacketData{}
+	finishFd, err := pd.BuildPacket(ctx, ph.Tbuf)
+	packet = strings.ToUpper(string(finishFd))
+	logger.Debugf(ctx, "finish packet: %s", packet)
+	return packet, err
+}
+
 func (rd *RequestData) Request2KeyExchangePacket(ctx context.Context) (string, error) {
 	packet := ""
 	ph := planet_8583.NewProtoHandler()
