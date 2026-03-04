@@ -199,7 +199,7 @@ func (rd *RequestData) Request2TransactionPacket(ctx context.Context) (string, e
 }
 
 func (rd *RequestData) Request2TipTransactionPacket(ctx context.Context) (string, error) {
-	// 场景二小费交易
+	// 场景二小费交易 场景二  通道的txamt = orig_txamt +txamt, 通道的小费= txamt
 	packet := ""
 
 	chnlExtData := rd.ChnlExt
@@ -227,7 +227,7 @@ func (rd *RequestData) Request2TipTransactionPacket(ctx context.Context) (string
 	pData := &planet_8583.ProtoStruct{
 		MsgType:                  "0220",
 		ProcessingCd:             processingCd,
-		Txamt:                    strconv.Itoa(rd.OrigTxamt),
+		Txamt:                    strconv.Itoa(rd.OrigTxamt + rd.Txamt),
 		Syssn:                    rd.Clisn,
 		NetId:                    "226",
 		PosCondCd:                "00",
@@ -241,12 +241,12 @@ func (rd *RequestData) Request2TipTransactionPacket(ctx context.Context) (string
 		CardDatetime:             chnlExtData.ExpiredDate,
 	}
 
-	if rd.TipAmt > 0 {
+	if rd.Txamt > 0 {
 		var byte54 []byte
-		tipAmt12 := fmt.Sprintf("%012d", rd.TipAmt)
+		tipAmt12 := fmt.Sprintf("%012d", rd.Txamt)
 		byte54 = []byte(tipAmt12)
 		pData.Domain54 = byte54
-		logger.Debugf(ctx, "tipAmt: %d, tipAmt12: %s, byte54: %v", rd.TipAmt, tipAmt12, byte54)
+		logger.Debugf(ctx, "tipAmt: %d, tipAmt12: %s, byte54: %v", rd.Txamt, tipAmt12, byte54)
 	}
 	logger.Debugf(ctx, "request pData: %+v", pData)
 	pData.Domain63Tags = make(map[string][]byte)

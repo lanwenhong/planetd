@@ -2,7 +2,6 @@ package format
 
 import (
 	"context"
-	"encoding/hex"
 	"strings"
 
 	"github.com/lanwenhong/lgobase/logger"
@@ -11,28 +10,17 @@ import (
 
 func (rd *RequestData) PacketReversal(ctx context.Context) (string, error) {
 	packet := ""
+	var err error
 
 	chnlExtData := rd.ChnlExt
 	ph := planet_8583.NewProtoHandler()
-	biccdata, err := hex.DecodeString(chnlExtData.Iccdata)
-	if err != nil {
-		logger.Infof(ctx, "DecodeString err: %s", err.Error())
-		return packet, err
-	}
 	pData := &planet_8583.ProtoStruct{
 		MsgType:      "0400",
 		ProcessingCd: chnlExtData.ProcessingCd,
-		//Txamt:                strconv.Itoa(rd.Txamt),
-		Syssn:                chnlExtData.OrigSTAN,
-		PosEntryMode:         chnlExtData.EntryMode,
-		TrackData2:           chnlExtData.Track2,
-		NetId:                "226",
-		PosCondCd:            "00",
-		Tid:                  rd.MchInfos.SubMchntid,
-		MchntId:              rd.MchInfos.Mchntid,
-		CurrencyCd:           rd.Currency,
-		ICCSystemRelatedData: biccdata,
+		Syssn:        chnlExtData.OrigSTAN,
+		PosEntryMode: chnlExtData.EntryMode,
 	}
+	logger.Debugf(ctx, "request pData: %+v", pData)
 	pData.Domain63Tags = make(map[string][]byte)
 	tagFA := &planet_8583.TagFA{
 		Len:                "0003",

@@ -18,7 +18,8 @@ func InitRouter() *gin.Engine {
 	apiV1 := r.Group("/trade/v1")
 	{
 		apiV1.POST("/swipe", v1.Trade)
-		apiV1.POST("/tip", v1.TradeTip)
+		apiV1.POST("/void_trade", v1.Trade)
+		apiV1.POST("/tips", v1.TradeTip)
 		apiV1.POST("/key_in", v1.TradeKeyIn)
 		apiV1.POST("/refund", v1.Trade)
 		apiV1.POST("/close", v1.Trade)

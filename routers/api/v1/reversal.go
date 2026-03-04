@@ -16,9 +16,11 @@ import (
 func Reversal(c *gin.Context) {
 	requestID := c.Request.Header.Get("X-Request-ID")
 	ctx := context.WithValue(context.Background(), "request_id", requestID)
-	if _rawData, err := c.GetRawData(); err != nil {
-		logger.Debugf(ctx, "req=%s", string(_rawData))
-	}
+	/*
+		if _rawData, err := c.GetRawData(); err != nil {
+			logger.Debugf(ctx, "req=%s", string(_rawData))
+		}
+	*/
 	var requestData format.RequestData
 	ext := make(map[string]interface{})
 	if err := c.ShouldBindJSON(&requestData); err != nil {

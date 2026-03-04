@@ -143,7 +143,7 @@ func TestTrade(t *testing.T) {
 		"expired_date": "2612",
 		"trade_type":   "trade",
 	}
-	txamt := 90000
+	txamt := 10000
 	tipAmt := 0
 	clisn := generateVerificationCode()
 	trd := TestRequestData{
@@ -423,7 +423,7 @@ func TestTip1Trade(t *testing.T) {
 
 func TestTip2Trade(t *testing.T) {
 	// 消费
-	fullURL := addr + "/trade/v1/tip"
+	fullURL := addr + "/trade/v1/tips"
 	client := resty.New()
 	//pos_ext := "0zQnyvKPMydDHW/wTxwvq02RRYYuXt+pGCuSwZsE6P9puViFL2jHbAU/hivEqXz/H4Nidsi8o8cwSIIMGbZYp/wRubOTnYILw+OcBhq5zcQ1eOfsrs1zrSWGE4iKTzri6yDiEsdzSI5xN2Kf+UOhd3ZT21THFSn6IjrwV7wVgFvRMB4yAoTWCG+67eV2p0nLsoey7uS5P8+WFrC216RIhLq36n3GjG2Xf7ZCov3+jsYva0Uvabdvo5rIB6SbxUbxjUdAOlaww302E2bJmXMIL33BfHwUqcjS443qj9HqFGCH2RryoI1iy9+vt8dj5YT58lztSIdpdZMfYJem38hGrQI2obOkFp/Vli5Hc35ew0kdj7WERaNfzaIwNxtH3SxwIc9BDC6dPDCQeX4CMRwB1DdynVnWVgLiAtdbz8fDqgwOQrrGdlBf8z79HKcM/NX7qBe3dyCElBIqPMhySSdbanVW5cTy6kIBU1ps/JTmmHx4jg65qrX7usRaHzU9dqXUH/N8CrJto177x0AikDfIJl/vINeKpvjRxGUJustQaOXTEWdExJbgHgg4JMN6HyhAo5qD7s08Q4GTWGs7ayjqmo84je9QLcl7CpGrshgX51+hnh+BQpclFTgQnzJ4JA9F3yzCQ94dqoq4LuWVCwNIqA=="
 
@@ -456,10 +456,10 @@ func TestTip2Trade(t *testing.T) {
 		}
 	*/
 
-	txamt := 0
-	orig_txamt := 90000
-	tipAmt := 10000
-	orig_chnlsn := "606266588284"
+	txamt := 1000
+	orig_txamt := 10000
+	tipAmt := 0
+	orig_chnlsn := "606366694016"
 	clisn := generateVerificationCode()
 	trd := TestRequestData{
 		txamt:       txamt,
